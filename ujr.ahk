@@ -25,7 +25,7 @@ ADHD := New ADHDLib
 
 ; Ensure running as admin
 ADHD.run_as_admin()
-
+ADHD.config_ignore_x64_warning()
 ; ============================================================================================
 ; CONFIG SECTION - Configure ADHD
 
@@ -39,15 +39,15 @@ SetKeyDelay, 0, 50
 
 ; Stuff for the About box
 
-ADHD.config_about({name: "UJR", version: "6.10", author: "evilC", link: "<a href=""http://evilc.com/proj/ujr"">Homepage</a> / <a href=""https://github.com/evilC/AHK-Universal-Joystick-Remapper/issues"">Bug Tracker</a> / <a href=""http://ahkscript.org/boards/viewtopic.php?f=19&t=5671"">Forum Thread</a>"})
+ADHD.config_about({name: "UJR", version: "6.10.1", author: "evilC (modified by hrobertson)", link: "modified by hrobertson <a href=""http://evilc.com/proj/ujr"">evilC Homepage</a> / <a href=""https://github.com/hrobertson/AHK-Universal-Joystick-Remapper"">hrobertson GitHub</a>"})
 ; The default application to limit hotkeys to.
 ; Starts disabled by default, so no danger setting to whatever you want
 
 ; GUI size
-ADHD.config_size(600,500)
+ADHD.config_size(700,500)
 
 ; Configure update notifications:
-ADHD.config_updates("http://evilc.com/files/ahk/vjoy/ujr.au.txt")
+ADHD.config_updates("https://raw.githubusercontent.com/hrobertson/AHK-Universal-Joystick-Remapper/master/ujr.au.txt")
 
 ; Warn user of incompatible settings file
 ini_version := 2
@@ -153,13 +153,25 @@ Loop, 2 {
 	Gui, Add, Text, x185 y%th1% w60 R2 Center, Physical Axis
 	Gui, Add, Text, x240 y%th2% w100 h20 Center, State
 	Gui, Add, Text, x335 y%th2% w40 h20 Center, Invert
-	Gui, Add, Text, x375 y%th2% w50 R2 Center, % "Deadzone %"
-	Gui, Add, Text, x430 y%th2% w50 R2 Center, % "Sensitivity %"
-	Gui, Add, Text, x480 y%th2% w50 h20 Center, Physical
-	Gui, Add, Text, x525 y%th2% w40 h20 Center, Virtual
-	Gui, Add, Text, x568 y%th2% w20 h20 Center, QB
+	Gui, Add, Text, x385 y%th1% w60 R2 Center, Deadzones
+	Gui, Add, Text, x366 y80 w20 R2 Center, |--
+	Gui, Add, Text, x411 y80 w20 R2 Center, --|
+	Gui, Add, Text, x426 y80 w20 R2 Center, |--
+	Gui, Add, Text, x471 y80 w20 R2 Center, --|
+	Gui, Add, Text, x490 y%th2% w50 R2 Center, % "Sensitivity %"
+	if (A_Index == 1){
+		Gui, Add, Text, x540 y%th2% w50 h20 Center, Physical
+	} else {
+		Gui, Add, Text, x540 y%th1% w50 R2 Center, Axis 2 Virtual
+	}
+	if (A_Index == 1){
+		Gui, Add, Text, x585 y%th2% w40 h20 Center, Virtual
+	} else {
+		Gui, Add, Text, x585 y%th1% w40 R2 Center, Axis 1 Virtual
+	}
+	Gui, Add, Text, x628 y%th2% w20 h20 Center, QB
 
-	Gui, Add, GroupBox, x5 y50 w585 h290,
+	Gui, Add, GroupBox, x5 y50 w680 h290,
 	
 	Loop, %virtual_axes% {
 		ypos := 70 + A_Index * 30
@@ -173,8 +185,8 @@ Loop, 2 {
 			tmp := "None|Rests H|Rests L|Split H|Split L"
 			axis%tabnum%_controls_special_%A_Index%_TT := "Special Operations:`nRests (Low/High) - Makes Deadzone etc treat the high/low end of the axis as neutral.`nSplit (Low/High) - Uses only the low/high end of the physical axis."
 		} else {
-			tmp := "None|Merge|Greatest|Trim|Linear"
-			axis%tabnum%_controls_special_%A_Index%_TT := "Enables merging with axis " A_Index " on tab 'Axes 1'.`nMerge - A standard average of the two inputs.`nGreatest - whichever input is deflected the most.`nTrim - shift axis 1 center by axis 2."
+			tmp := "None|Merge|Greatest|Trim|Linear|Scale"
+			axis%tabnum%_controls_special_%A_Index%_TT := "Enables merging with axis " A_Index " on tab 'Axes 1'.`nMerge - A standard average of the two inputs.`nGreatest - whichever input is deflected the most.`nTrim - shift axis 1 center by axis 2.`nLinear - Limit axis 1 to the value of axis 2.`nScale - Scale the range of axis 1 by axis 2."
 		}
 		ADHD.gui_add("DropDownList", "axis" tabnum "_controls_special_" A_Index, "x55 y" ypos " w65 h20 R9", tmp, "None")
 		
@@ -190,14 +202,21 @@ Loop, 2 {
 		ADHD.gui_add("CheckBox", "axis" tabnum "_controls_invert_" A_Index, "x345 y" ypos " w20 h20", "", 0)
 		axis%tabnum%_controls_invert_%A_Index%_TT := "Inverts this axis"
 		
-		ADHD.gui_add("Edit", "axis" tabnum "_controls_deadzone_" A_Index, "x380 y" ypos " w40 h21", "", 0)
-		axis%tabnum%_controls_deadzone_%A_Index%_TT := "Applies a deadzone to this axis"
+		ADHD.gui_add("Edit", "axis" tabnum "_controls_deadzoneNh_" A_Index, "x370 y" ypos " w28 h21", "", 0)
+		axis%tabnum%_controls_deadzoneNh_%A_Index%_TT := "Deadzone negative high"
+		ADHD.gui_add("Edit", "axis" tabnum "_controls_deadzoneNl_" A_Index, "x400 y" ypos " w28 h21", "", 0)
+		axis%tabnum%_controls_deadzoneNl_%A_Index%_TT := "Deadzone negative low"
+
+		ADHD.gui_add("Edit", "axis" tabnum "_controls_deadzonePl_" A_Index, "x430 y" ypos " w28 h21", "", 0)
+		axis%tabnum%_controls_deadzonePl_%A_Index%_TT := "Deadzone positive low"
+		ADHD.gui_add("Edit", "axis" tabnum "_controls_deadzonePh_" A_Index, "x460 y" ypos " w28 h21", "", 0)
+		axis%tabnum%_controls_deadzonePh_%A_Index%_TT := "Deadzone positive high"
 		
-		ADHD.gui_add("Edit", "axis" tabnum "_controls_sensitivity_" A_Index, "x435 y" ypos " w40 h21", "", 100)
+		ADHD.gui_add("Edit", "axis" tabnum "_controls_sensitivity_" A_Index, "x500 y" ypos " w40 h21", "", 100)
 		axis%tabnum%_controls_sensitivity_%A_Index%_TT := "Adjusts sensitivity of this axis"
 		
-		Gui, Add, Text, x485 y%ypos% w40 h21 Center vaxis%tabnum%_controls_physical_value_%A_Index%, 0
-		Gui, Add, Text, x525 y%ypos% w40 h21 Center vaxis%tabnum%_controls_virtual_value_%A_Index%, 0
+		Gui, Add, Text, x545 y%ypos% w40 h21 Center vaxis%tabnum%_controls_physical_value_%A_Index%, 0
+		Gui, Add, Text, x585 y%ypos% w40 h21 Center vaxis%tabnum%_controls_virtual_value_%A_Index%, 0
 	}
 }
 ; BUTTONS TAB
@@ -293,7 +312,7 @@ Loop, % virtual_hats {
 
 Gui, Tab, 1
 
-xpos := 560
+xpos := 630
 Loop, %virtual_axes% {
 	ypos := 70 + A_Index * 30
 	ypos2 := ypos + 5
@@ -427,6 +446,8 @@ Loop{
 						merge := 3
 					} else if (axis_mapping2[index].special == "Linear"){
 						merge := 4
+					} else if (axis_mapping2[index].special == "Scale"){
+						merge := 5
 					}
 				} else {
 					merge := 0
@@ -437,9 +458,6 @@ Loop{
 
 				; Display input value in AHK format, rounded
 				GuiControl,, axis1_controls_physical_value_%index%, % round(axis_one,2)
-				if (axis2_configured){
-					GuiControl,, axis2_controls_physical_value_%index%, % round(axis_two,2)
-				}
 				
 				; Adjust axis according to invert / deadzone options etc
 				tmp := instr(value.special, "Rests ")
@@ -463,7 +481,7 @@ Loop{
 				; Display output value in AHK format
 				GuiControl,, axis1_controls_virtual_value_%index%, % round(axis_one,2)
 				if (axis2_configured){
-					GuiControl,, axis2_controls_virtual_value_%index%, % round(axis_two,2)
+					GuiControl,, axis2_controls_physical_value_%index%, % round(axis_two,2)
 				}
 				; Move slider to show input value
 				GuiControl,, axis1_controls_state_slider_%index%, % axis_one
@@ -476,6 +494,8 @@ Loop{
 				; ToDo: This code SUCKS!
 				; re-write!!
 				; risky assumptions (low/high "no deflection" setting, when could be implied from "Rests" setting)
+
+				axis_oneAHK := axis_one
 
 				; rescale to vJoy style 0->32768
 				axis_one := AHKToVjoy(axis_one)
@@ -540,15 +560,28 @@ Loop{
 						b := 4*axis_two - 1
 						out := vjoy_max * (a*axis_one*axis_one + b*axis_one)
 					} else if (merge == 4){
+						; Linear (actually greatest)
 						if (axis_two > axis_one){
 							out := axis_two
 						}
+					} else if (merge == 5){
+						; "Scale" merge
+						if (axis1_controls_special_%index% == "None"){
+							; Rests middle
+							axis_one := AHKToZeroCentered(axis_oneAHK)
+							sign := sign(axis_one)
+							axis_one := abs(axis_one) / 50
+							axis_two := axis_two / vjoy_max
+							axis_one := sign * (axis_one * axis_two) * 50
+							axis_one := ZeroCenteredToAHK(axis_one)
+							out := AHKToVjoy(axis_one)
+						}
 					}
 					VJoy_SetAxis(out, vjoy_id, HID_USAGE_%axismap%)
+					GuiControl,, axis2_controls_virtual_value_%index%, % round(VjoyToAHK(out),2)
 				} else {
 					VJoy_SetAxis(axis_one, vjoy_id, HID_USAGE_%axismap%)
 				}
-
 			} else {
 				; Blank out unused axes
 				DisableAxis(index)
@@ -652,10 +685,23 @@ AdjustAxis(input,settings,rests){
 		output := output * settings.invert
 		
 		; impose deadzone if set
-		if (abs(output) <= settings.deadzone/2){
-			output := 0
+
+		if (output >= 0) {
+			if (output <= settings.deadzonePl) {
+				output := 0
+			} else if (output >= 50 - settings.deadzonePh) {
+				output := 50
+			} else {
+				output := (output-settings.deadzonePl) * 50 / (50 - settings.deadzonePl - settings.deadzonePh)
+			}
 		} else {
-			output := sign(output)*50*(abs(output)-(settings.deadzone/2))/(50-settings.deadzone/2)
+			if (abs(output) <= settings.deadzoneNl) {
+				output := 0
+			} else if (abs(output) >= 50 - settings.deadzoneNh) {
+				output := -50
+			} else {
+				output := -1*(abs(output)-settings.deadzoneNl) * 50 / (50 - settings.deadzoneNl - settings.deadzoneNh)
+			}
 		}
 		
 		; Adjust for sensitivity
@@ -684,12 +730,14 @@ AdjustAxis(input,settings,rests){
 		}
 			
 		; impose deadzone if set
-		if (settings.deadzone != 0){
-			if (output < settings.deadzone){
+		if (settings.deadzonePl != 0 || settings.deadzonePh != 0){
+			if (output <= settings.deadzonePl){
 				output := 0
+			} else if (output >= 100 - settings.deadzonePh){
+				output := 100
 			} else {
 				;rescale
-				output := (output - settings.deadzone) * (100 / (100 - settings.deadzone))
+				output := (output - settings.deadzonePl) * 100 / (100 - settings.deadzonePl - settings.deadzonePh)
 			}
 		}
 		
@@ -914,15 +962,15 @@ option_changed_hook(){
 			GuiControl, %tmp%, axis%map%_controls_physical_stick_id_%A_Index%
 			GuiControl, %tmp%, axis%map%_controls_physical_axis_%A_Index%
 			GuiControl, %tmp%, axis%map%_controls_invert_%A_Index%
-			GuiControl, %tmp%, axis%map%_controls_deadzone_%A_Index%
+			GuiControl, %tmp%, axis%map%_controls_deadzonePl_%A_Index%
+			GuiControl, %tmp%, axis%map%_controls_deadzonePh_%A_Index%
+			GuiControl, %tmp%, axis%map%_controls_deadzoneNl_%A_Index%
+			GuiControl, %tmp%, axis%map%_controls_deadzoneNh_%A_Index%
 			GuiControl, %tmp%, axis%map%_controls_sensitivity_%A_Index%
 
 			axis_mapping%map%[A_Index].special := axis%map%_controls_special_%A_Index%
 
 			axis_mapping%map%[A_Index].id := axis%map%_controls_physical_stick_id_%A_Index%
-			if (map == 1 && axis_mapping%map%[A_Index].id == "None"){
-				DisableAxis(A_Index)
-			}
 
 			axis_mapping%map%[A_Index].axis := axis%map%_controls_physical_axis_%A_Index%
 			
@@ -932,12 +980,28 @@ option_changed_hook(){
 				axis_mapping%map%[A_Index].invert := -1
 			}
 			
-			if (axis%map%_controls_deadzone_%A_Index% is not number){
-				GuiControl,,axis%map%_controls_deadzone_%A_Index%,0
+			if (axis%map%_controls_deadzonePl_%A_Index% is not number){
+				GuiControl,,axis%map%_controls_deadzonePl_%A_Index%,0
 			} else {
-				axis_mapping%map%[A_Index].deadzone := axis%map%_controls_deadzone_%A_Index%
+				axis_mapping%map%[A_Index].deadzonePl := axis%map%_controls_deadzonePl_%A_Index%
 			}
-			
+			if (axis%map%_controls_deadzonePh_%A_Index% is not number){
+				GuiControl,,axis%map%_controls_deadzonePh_%A_Index%,0
+			} else {
+				axis_mapping%map%[A_Index].deadzonePh := axis%map%_controls_deadzonePh_%A_Index%
+			}
+
+			if (axis%map%_controls_deadzoneNl_%A_Index% is not number){
+				GuiControl,,axis%map%_controls_deadzoneNl_%A_Index%,0
+			} else {
+				axis_mapping%map%[A_Index].deadzoneNl := axis%map%_controls_deadzoneNl_%A_Index%
+			}
+			if (axis%map%_controls_deadzoneNh_%A_Index% is not number){
+				GuiControl,,axis%map%_controls_deadzoneNh_%A_Index%,0
+			} else {
+				axis_mapping%map%[A_Index].deadzoneNh := axis%map%_controls_deadzoneNh_%A_Index%
+			}
+
 			if (axis%map%_controls_sensitivity_%A_Index% is not number){
 				GuiControl,,axis%map%_controls_sensitivity_%A_Index%,100
 			} else {
