@@ -1,13 +1,13 @@
 ### UJR moddified by hrobertson
 
-#Please note that UJR is no longer maintained as it has been replaced with [UCR](https://github.com/evilC/UCR).
+#Please note that the original UJR is no longer maintained as it has been replaced with [UCR](https://github.com/evilC/UCR).
+Once UCR is out of Alpha, I will look at using it instead of UJR and will port my modifications to it.
 
 ##AHK - Universal Joystick Remapper (UJR)
 
 UJR is a stand-alone application written in AutoHotkey.   
-It is distributed in compiled form, so please do not attempt to download the source from Github unless you know what you are doing.
 
-#####The regular download link for end-users is [HERE]( http://evilc.com/proj/ujr).
+You can download the precompiled tool from the [Releases](https://github.com/hrobertson/AHK-Universal-Joystick-Remapper/releases) section.
 
 UJR is an application for taking axes or buttons from one or more physical joysticks, and merging them onto a virtual joystick (with tweaks such as axis inversion, deadzones, sensitivity etc).
 
@@ -19,4 +19,4 @@ If in doubt, download from github and use the uncompiled version, or compile it 
 
 Here are some screenshots of UJR in action:
 
-![GitHub Logo](http://evilc.com/files/ahk/vjoy/ujr.png)
+![GitHub Logo](http://i.imgur.com/41rNZro.png)
